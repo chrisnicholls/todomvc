@@ -130,22 +130,38 @@ jQuery(function ($) {
 			return todos;
 		},
 		getActiveTodos: function () {
-			console.log("Getting active todos");
+			console.log("Getting active todos")
+
+			var todos = [];
+
 			var response = $.ajax({
 				type: "GET",
 				url: "http://localhost:5000/todos/active",
-				async: false,
+				async:false,
 				dataType: 'json'
-			}).responseText;
+			}).done(function(response) {
+				todos = response.todos;
+			});
 
-			console.log("Got active todoss:\n" + response);
-			return response;
+			console.log("Got all todos:\n", response);
+			return todos;
 		},
 		getCompletedTodos: function () {
-			alert("getCompletedTodos");
-			return this.todos.filter(function (todo) {
-				return todo.completed;
+			console.log("Getting completed todos")
+
+			var todos = [];
+
+			var response = $.ajax({
+				type: "GET",
+				url: "http://localhost:5000/todos/completed",
+				async:false,
+				dataType: 'json'
+			}).done(function(response) {
+				todos = response.todos;
 			});
+
+			console.log("Got all todos:\n", response);
+			return todos;
 		},
 		getFilteredTodos: function () {
 			if (this.filter === 'active') {
@@ -209,8 +225,15 @@ jQuery(function ($) {
 			this.render();
 		},
 		toggle: function (e) {
-			var i = this.indexFromEl(e.target);
-			this.todos[i].completed = !this.todos[i].completed;
+			var id = this.idFromEl(e.target);
+
+			$.ajax({
+				type: "PUT",
+				dataType: "json",
+				url: "http://localhost:5000/todo/" + id + "/toggle",
+				async: false
+			});
+
 			this.render();
 		},
 		edit: function (e) {
@@ -230,6 +253,7 @@ jQuery(function ($) {
 			var el = e.target;
 			var $el = $(el);
 			var val = $el.val().trim();
+			var id = this.idFromEl(el);
 
 			if ($el.data('abort')) {
 				$el.data('abort', false);
@@ -240,10 +264,16 @@ jQuery(function ($) {
 			var i = this.indexFromEl(el);
 
 			if (val) {
-				this.todos[i].title = val;
-			} else {
-				this.todos.splice(i, 1);
-			}
+				var j = JSON.stringify({"title": val})
+
+				$.ajax({
+					type: "PUT",
+					dataType: "json",
+					url: "http://localhost:5000/todo/" + id + "/title",
+					data: j,
+					async: false
+				});
+			} 
 
 			this.render();
 		},
